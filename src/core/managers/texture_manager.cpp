@@ -31,10 +31,10 @@ TextureManager::~TextureManager()
 #endif
 
 
-Texture2D *TextureManager::LoadTexture(const std::string &path, const char *fileName, const char *key, bool forceLoad, bool cacheInRAM)
+Texture2D* TextureManager::LoadTexture(const std::string& path, const char* fileName, const char* key, bool forceLoad, bool cacheInRAM)
 {
     std::string uid = key ? std::string(key) : std::string(fileName);
-    Texture2D *texture = GetTexture(uid.c_str());
+    Texture2D* texture = GetTexture(uid.c_str());
 
     if (forceLoad || texture == nullptr)
     {
@@ -44,8 +44,21 @@ Texture2D *TextureManager::LoadTexture(const std::string &path, const char *file
         }
 
         texture->CacheInMemory(cacheInRAM);
-        bool status = texture->Load2D((path + (fileName ? (std::string(1, PATH_SEPARATOR) + fileName) : "")).c_str());
 
+        // If file name contains a path separator, extract path and file name
+        std::string sFileName = fileName;
+        std::string sPath = path;
+
+        size_t pos = sFileName.find_last_of("/\\");
+        if (pos != std::string::npos)
+        {
+            // Add first path to path 
+            sPath = sPath + PATH_SEPARATOR + sFileName.substr(0, pos);
+            // Remove it from file name
+            sFileName = sFileName.substr(pos + 1);
+        }
+
+        bool status = texture->Load2D((sPath + (fileName ? (PATH_SEPARATOR + sFileName) : "")).c_str());
         if (status == false)
         {
             delete texture;
